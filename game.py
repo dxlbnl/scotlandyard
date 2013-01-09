@@ -7,9 +7,11 @@ class Game(object):
 		self.stops = board['stops']
 		self.start_points = board['start_points']
 
-		self.conn_metro = board['connections']['metro']
-		self.conn_bus   = board['connections']['bus']
-		self.conn_taxi  = board['connections']['taxi']
+		self.connections = {
+			'metro' : board['connections']['metro'],
+			'bus'   : board['connections']['bus'],
+			'taxi'  : board['connections']['taxi']
+		}
 
 
 	def set_players(self, mrX, detectives):
@@ -26,6 +28,15 @@ class Game(object):
 		
 		# give mrX his black tickets
 		self.mrX.give_tickets('black', len(self.detectives))
+		
+		self.round()
+		
+	def connected_stops(self, position):
+		return {
+			type : [connection for connection in connections if position in connection] for type, connections in self.connections.iteritems()
+		}
+			
 
 	def round(self):
 		self.mrX.move()
+		
