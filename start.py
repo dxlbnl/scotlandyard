@@ -5,29 +5,33 @@
 	Purpose: Model a game of Scotland Yard.
 
 	Beginnings:
-	    there is 1 mrX, and several detectives.
-	    every player (mrX and the detectives) gets a unique starting position. 
+	    There is 1 mrX, and several detectives.
+	    Every player (mrX and the detectives) gets a unique starting position. 
 	    
+	    Then, mrX makes a move, and in turn every detective makes a move.
+	    Until mrX is caught, or the detectives don't have any tickets left.
         
+        Every player can see 
 """
 
 import json
 
 from player import MrX, Detective
 from game import Game
-from board import Board
 
 if __name__ == "__main__":
 	n_detectives = 4
 
-	mrX = MrX()
-	detectives = [Detective() for i in range(n_detectives)]
-
 	with open('london-subset.json') as board_definition:
 		board_definition = json.loads(board_definition.read())
+	
+	game = Game(board_definition)
 
-	board = Board(board_definition)
+	mrX = MrX(game)
+	detectives = [Detective(game) for i in range(n_detectives)]
 
-	game = Game(board, mrX, detectives)
+	game.set_players(mrX, detectives)
+	
+	game.start()
 
 
