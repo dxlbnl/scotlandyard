@@ -33,7 +33,12 @@ class Game(object):
 		
 	def connected_stops(self, position):
 		return {
-			type : [connection for connection in connections if position in connection] for type, connections in self.connections.iteritems()
+			type : [
+					  connection[0] if position == connection[1] else connection[1]
+						for connection in connections 
+						if position in connection
+					] 
+			for type, connections in self.connections.iteritems()
 		}
 			
 

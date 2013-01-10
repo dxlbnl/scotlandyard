@@ -24,7 +24,7 @@ class Player(object):
 		print self, "setting position", position
 		
 	def move(self):
-		print game.connected_stops(self.position)
+		print self.game.connected_stops(self.position)
 		
 #		res = raw_input("Moving {0} to ".format(self))
 #		print res
