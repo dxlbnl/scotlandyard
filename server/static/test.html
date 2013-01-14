@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+
+
+<object id='map' data='/static/scotland_yard.svg'></object>
+
+<style>
+    body {
+        position:absolute;
+        top: 0; bottom: 0;
+        left: 0; right: 0;
+        padding: 0; margin: 0;
+    }
+
+    #map {
+        position: absolute;
+        left: 50%; margin-left: -500px;
+        top: 50%; margin-top: -392px;
+    }
+</style>
+
+<script>
+
+    var svg;
+    var scaled;
+    var o = document.querySelector('object');
+
+    function get_stop(el) {
+        while (el.className && el.className.baseVal !== 'stop') {
+            el = el.parentNode;
+        }
+        if (el.className) {
+            return el
+        }
+    }
+
+    var scale_size = 2;
+    function increase_size(el) {
+        var scale;
+
+        if (!scaled) {
+            scale = svg.rootElement.createSVGTransform();
+            scale.setScale(scale_size, scale_size);
+            el.transform.baseVal.appendItem(scale);
+            scaled = el;
+        } else if (el !== scaled) {
+            decrease_size(el);
+            increase_size(el);
+        } 
+    }
+    function decrease_size(el) {
+        if (el === scaled) {
+            el.transform.baseVal.removeItem(el.transform.baseVal.numberOfItems - 1);
+            scaled = undefined;
+        } else {
+            console.log("Error, scaling wrong element");
+            debugger;
+        }
+    }
+
+
+    o.onload = function () {
+        svg = o.getSVGDocument();
+
+        svg.onclick = function (e) {
+            var el;
+            el = get_stop(e.target);
+            if (el) {
+                console.log("clicked on", el.id)
+            }
+        };
+
+        svg.onmouseover = function (e) {
+            var trans, scale, el;
+            el = get_stop(e.target);
+            if (el) {
+                increase_size(el);
+                console.log("over", el.id)
+            } 
+        };
+
+        svg.onmouseout = function (e) {
+            var el;
+            el = get_stop(e.target);
+            if (el) {
+                decrease_size(el);
+                console.log("out", el.id)
+            }
+        }
+        
+    }
+</script>
+
+</html>

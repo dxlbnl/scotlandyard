@@ -14,9 +14,12 @@ class Game(object):
         }
 
 
-    def set_players(self, mrX, detectives):
-        self.mrX = mrX
-        self.detectives = detectives
+    def set_players(self, mrX=None, detectives=None):
+        if mrX:
+            self.mrX = mrX
+
+        if detectives:
+            self.detectives = detectives
 
     def start(self):
         """Launch the game"""
