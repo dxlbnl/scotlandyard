@@ -1,15 +1,26 @@
-import asyncore, asynchat, socket
-import json
 
-class Server(asyncore.dispatcher):
-    def __init__(self, host='localhost', port=8888, manager=None):
+import sys, traceback
+import json
+import asyncore, asynchat, socket
+
+from functools import partial
+
+api_tokens = {
+    'HelloWorld' : "Hoi, Dexter"
+}
+
+
+class Dispatcher(asyncore.dispatcher):
+    """Dispatcher creates socket Connections and passes those to the server."""
+
+    def __init__(self, server, host='localhost', port=8888):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.bind((host, port))
         self.listen(1)
 
-        self.manager = manager
+        self.server = server
 
     def handle_accept(self):
         # when we get a client connection start a dispatcher for that
@@ -17,7 +28,8 @@ class Server(asyncore.dispatcher):
         socket, address = self.accept()
         print 'Connection by', address
 
-        self.manager.connect(Connection(socket))
+        self.server.connect(Connection(socket))
+
 
 class Connection(asynchat.async_chat):
 
@@ -34,9 +46,12 @@ class Connection(asynchat.async_chat):
         self.ibuffer += data
 
     def found_terminator(self):
-        if self.on_message:
-            self.on_message(self.ibuffer)
-        self.ibuffer = ''
+        try:
+            if self.on_message:
+                self.on_message(self.ibuffer)
+            self.ibuffer = ''
+        except:
+            traceback.print_exception(*sys.exc_info())
 
     def handle_close(self):
         print "Connection Closed"
@@ -47,22 +62,21 @@ class Connection(asynchat.async_chat):
         msg += self.terminator
         asynchat.async_chat.push(self, msg)
 
-from functools import partial
 
-api_tokens = {
-    'HelloWorld' : "Hoi, Dexter"
-}
+class Server(object):
 
-class Manager(object):
-
-    def __init__(self):
+    def __init__(self, host='localhost', port=8888):
+        self.dispatcher = Dispatcher(self, host, port)
         self.connections = {}
+
+    def set_handler(self, handler):
+        
 
     def on_message(self, id, msg):
         data = json.loads(msg)
 
-        handler = getattr(self, 'handle_{}'.format(data['type']))
-        print handler
+        handler = getattr(self, 'handle_{type}'.format(type=data['type']))
+
         if handler:
             handler(id, data)
         else:
@@ -76,29 +90,12 @@ class Manager(object):
         connection.on_message = partial(self.on_message, conn_id)
 
         self.connections[conn_id] = connection
-        print "Connection", conn_id, connection
-
-    def handle_login(self, id, data):
-        print "Login", id, data
-        if 'api_token' in data and data['api_token'] in api_tokens:
-            res = dict(
-                type   = 'login',
-                status = 'ok',
-                greeting = api_tokens[data['api_token']]
-            )
-        else:
-            res = {
-                "type"   : 'login',
-                "status" : "error",
-                "error"  : 'invalid api token'
-            }
-
-        self.send(id, res)
 
 
 
-m = Manager()
-s = Server('194.145.201.129', manager=m)
+    def launch(self):
+        asyncore.loop()
 
 
-asyncore.loop()
+# class MessageHandler(object):
+    # """handles messages"""        

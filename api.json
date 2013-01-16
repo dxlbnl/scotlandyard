@@ -12,7 +12,6 @@
 
 
 # Game state (requested from server)
-
 {
 	"detectives" : [{
 		"pos" : int,

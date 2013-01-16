@@ -1,15 +1,8 @@
 import asyncore, asynchat, socket
 import json
 
-requests = {
-    "login" : {
-        "type"      : "login",
-        "api_token" : "HeldloWorld"
-    }
-}
 
-
-class Client(asynchat.async_chat):
+class Dispatcher(asynchat.async_chat):
     count = 0
     terminator = "\r\n"
 
@@ -34,7 +27,7 @@ class Client(asynchat.async_chat):
         self.ibuffer += data
 
     def found_terminator(self):
-        print "Hier"
+        """When the message is done, pass it on."""
         if self.on_message:
             self.on_message(self.ibuffer)
         self.ibuffer = ''
@@ -44,11 +37,11 @@ class Client(asynchat.async_chat):
         self.close()
         del self
 
-class Manager(object):
+class Client(object):
     """Manages incoming objects and return requests."""
 
-    def __init__(self, connection):
-        self.connection = connection
+    def __init__(self, host='localhost', port=8888):
+        self.connection = Dispatcher(host, port)
         self.connection.on_message = self.handle_msg
 
     def send(self, data):
@@ -58,13 +51,6 @@ class Manager(object):
         print "Got msg", json.loads(msg)
         self.connection.handle_close()
 
+    def launch(self):
+        asyncore.loop()
 
-
-
-
-c = Manager(Client('dxtr.be'))
-
-c.send(requests['login'])
-
-
-asyncore.loop()
