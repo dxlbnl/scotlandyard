@@ -1,0 +1,50 @@
+
+# request body:
+{
+	"type" : str,
+}
+
+# response body:
+{
+	"type" : str,
+	"data" : obj
+}
+
+
+# Game state (requested from server)
+
+{
+	"detectives" : [{
+		"pos" : int,
+		"tickets" : {
+			"taxi"  : int,
+			"bus"   : int,
+			"metro" : int
+		}
+	}*],
+	"mrX" : {
+		"pos" : int,
+		"tickets" : {
+			"taxi"  : int,
+			"bus"   : int,
+			"metro" : int,
+			"black" : int,
+			"double" : int
+		}
+	},
+	"mrX_log" : [
+		ticket_types* 
+	],
+	"turn"  : int,
+	"round" : int
+}
+
+# Board (requested from server)
+{
+	"int" : {
+		"taxi"  : [int*],
+		"bus"   : [int*],
+		"metro" : [int*]
+	}
+}
+
