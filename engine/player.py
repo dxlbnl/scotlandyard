@@ -4,20 +4,16 @@ class Player(object):
 
     location = 0
 
-    def __init__(self, game):
+    def __init__(self, client):
         self.id = "{0}-{1}".format(self.__class__.__name__, self.identifiers)
         
         Player.identifiers += 1
         self.tickets = self.tickets.copy()
-        
-        self.game = game
 
+        self.client = client
+        
     def __repr__(self):
         return self.id
-
-    def setup(self, game):
-        print "Setting board", self, game
-        self.game  = game
 
     def set_location(self, location):
         self.location = location
@@ -25,9 +21,12 @@ class Player(object):
         
     def move(self):
         print "Moving {}".format(self)
-        print '\n'.join(("\t{}: {}".format(type, ', '.join(stop)) for type, stop in self.game.connected_stops(self.location).items()))
+
+        # call the client to make the move.
+        self.client.move(self.id)
+        # print '\n'.join(("\t{}: {}".format(type, ', '.join(stop)) for type, stop in self.game.connected_stops(self.location).items()))
         
-        return raw_input("Moving {0} to ".format(self)).split(' ')
+        # return raw_input("Moving {0} to ".format(self)).split(' ')
         
         
 
@@ -68,5 +67,5 @@ class MrX(Player):
         self.tickets[transport] -= 1
 
         if len(self.move_log) in self.revelation_moves:
-            self.game.reveal_mrX(self.location)
+            print "MRX: Revealing", self.location
     

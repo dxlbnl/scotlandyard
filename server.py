@@ -1,56 +1,71 @@
-from network import Server
+from uuid import uuid4
+import json
 
-class GameServer(Server):
-	"""
-		Handles json messages with a type field, 
-		calling the method corresponding to handle_{type}.
-	"""
-	@classmethod
-	def handle(type):
-		"""Creates a handler factory, handlers take an id and data, and call the """
+from network import Server, BaseHandler
+from engine import Game
 
-		def create_handler(self, id, data):
-			pass
-		pass
+with open('newlondon.json') as board_file:
+	board = json.loads(board_file.read())
 
-	authorized_tokens = ['HeldloWorld']
+class APIHandler(BaseHandler):
+	authorized_tokens = ['Hello World!']
 
-	def handle_login(self, id, data):
-		print "Received data", id, data
-
-
-
-		self.send(id, {
-			"type"   : "login",
-			"status" : "ok"
-		})
-
-	##############################
-	##   Game Handling          ##
-	##############################
-	def handle_create_game(self, id, data):
-		pass
-
-	{
-		"type"      : "login",
-		"api_token" : "blabal"
-	}
-
-
-class Connection(object):
-	def login(self, api_token):
-		self.api_token = api_token
-
-
-class APIHandler(object):
-	def __init__(self, connection):
-		self.connection = connection
-
+	games = {}
 
 
 	def login(self, api_token):
 		print "Loggin in with", api_token
+		if api_token in self.authorized_tokens:
+			self.client.after_login('ok')
+		else:
+			self.client.raise_error('Wrong api token')
 
+	def create_game(self):
+		game_id = str(uuid4())
+		print "Game Created", game_id
 
-server = GameServer('dxtr.be')
-server.launch()
+		self.games[game_id] = Game(board)
+		# TODO: Set owner for a game
+
+		self.client.game_created(game_id)
+
+	def list_games(self):
+		self.client.games_list(self.games.keys())	
+
+	def game_register_player(self, game_id, player_type):
+		game = self.games[game_id]
+		player_id = game.register_player(player_type, self.client)
+
+		self.client.player_registered(game_id, player_id, player_type)
+
+	def game_start(self, game_id):
+		# TODO: only owner can start a game.
+		game = self.games[game_id]
+		game.start()
+
+		game.send_state()
+
+		game.round_state.next()
+
+	def game_remove(self, game_id):
+		# TODO: only owners can remove a game.
+
+	def player_moved(self, game_id, player_id, location, transport):
+		# TODO: only owners of that player can move.
+		print "player moved", game_id, player_id, location
+		game = self.games[game_id]
+
+		game.move_player(player_id, location, transport)
+
+	def send_board(self):
+		print "Setting board"
+		self.client.set_board(board)
+
+		
+
+if __name__ == "__main__":
+	host = 'dxtr.be'
+	port = 9999
+	print "Launching server @ {}:{}".format(host, port)
+	server = Server(APIHandler, host, port) 
+	server.launch()

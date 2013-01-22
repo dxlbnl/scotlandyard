@@ -1,14 +1,15 @@
 
-import sys, traceback
+import sys, inspect, traceback
 import json
 import asyncore, asynchat, socket
 
 from functools import partial
 
+from util import RPCObject
+
 api_tokens = {
     'HelloWorld' : "Hoi, Dexter"
 }
-
 
 class Dispatcher(asyncore.dispatcher):
     """Dispatcher creates socket Connections and passes those to the server."""
@@ -30,11 +31,10 @@ class Dispatcher(asyncore.dispatcher):
 
         self.server.connect(Connection(socket))
 
-
 class Connection(asynchat.async_chat):
 
     on_message = None
-    terminator = '\r\n'
+    terminator = '\0'
 
     def __init__(self, sock):
         asynchat.async_chat.__init__(self, sock=sock)
@@ -43,12 +43,16 @@ class Connection(asynchat.async_chat):
 
     def collect_incoming_data(self, data):
         """Buffer the data"""
+        print "Collecting data",[data]
         self.ibuffer += data
 
     def found_terminator(self):
         try:
             if self.on_message:
-                self.on_message(self.ibuffer)
+                ibuffer = self.ibuffer
+                self.ibuffer = ''
+
+                self.on_message(ibuffer)
             self.ibuffer = ''
         except:
             traceback.print_exception(*sys.exc_info())
@@ -59,43 +63,78 @@ class Connection(asynchat.async_chat):
         del self
 
     def push(self, msg):
-        msg += self.terminator
-        asynchat.async_chat.push(self, msg)
-
+        asynchat.async_chat.push(self, msg + self.terminator)
 
 class Server(object):
 
-    def __init__(self, host='localhost', port=8888):
+    def __init__(self, Handler, host='localhost', port=8888):
         self.dispatcher = Dispatcher(self, host, port)
         self.connections = {}
-
-    def set_handler(self, handler):
-        
-
-    def on_message(self, id, msg):
-        data = json.loads(msg)
-
-        handler = getattr(self, 'handle_{type}'.format(type=data['type']))
-
-        if handler:
-            handler(id, data)
-        else:
-            print "Did not find handler:", data['type'], data
-
-    def send(self, id, data):
-        self.connections[id].push(json.dumps(data))
+        self.Handler = Handler
 
     def connect(self, connection):
         conn_id = id(connection)
         connection.on_message = partial(self.on_message, conn_id)
 
-        self.connections[conn_id] = connection
+        self.connections[conn_id] = self.Handler(connection)
 
+    def on_message(self, id, msg):
+        print "got message", id, msg
+        data = json.loads(msg)
+        method = data.pop('method')
 
+        if method[0] != '_': # dont allow the magic methods.
+            # fetch the handler
+            connection = self.connections[id]
+
+            handler = getattr(connection, method, None)
+
+            if handler:
+                try:
+                    handler(**data)
+                except Exception, e:
+                    print "Error in API method '{}' with {}".format(method, data)
+                    raise e
+            else:
+                print "Did not find handler:", method, data
+        else:
+            print "Tried to use the magic methods"
 
     def launch(self):
         asyncore.loop()
 
+    
+class BaseHandler(object):
+    __all__ = []
 
-# class MessageHandler(object):
-    # """handles messages"""        
+    def __init__(self, connection):
+        self.__all__.append(connection)
+
+        send = lambda data: connection.push(json.dumps(data))
+        self.client = RPCObject(send)
+
+        # set the api on the client.
+        send({
+            'method' : 'set_api',
+            'api'    : self.get_api()
+        })
+
+
+    def set_api(self, api):
+        print "Setting server API"
+        self.client.api = api
+
+    def get_api(self):
+        print "Getting server API"
+        """Returns all the allowed methods and possible arguments for the api"""
+        getargs = lambda method: [arg for arg in inspect.getargspec(method).args + 
+                                                 (inspect.getargspec(method).keywords or {}).keys()
+                                            if arg != 'self'
+                                ]
+        methods = { 
+            name :  getargs(method)
+                for name, method in inspect.getmembers(self) 
+                if name not in dir(BaseHandler) and inspect.ismethod(method)
+        }
+
+        return methods

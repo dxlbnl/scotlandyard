@@ -40,14 +40,14 @@
       }
 
       .stop path {
-        fill:#DDDDDD;
+        fill:#999999;
         fill-opacity:1;
         stroke:#000000;
         stroke-opacity:1;
       }
 
       .stop rect {
-        fill:#DDDDDD;
+        fill:#999999;
         fill-opacity:1;
         stroke:#000000;
         stroke-opacity:1;
@@ -69,7 +69,7 @@
         cursor: pointer;
       }
       .stop:hover rect, .stop:hover path {
-        fill:#EEEEEE;
+        fill:#999999;
       }
 
     </style>
@@ -123,13 +123,13 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="Stops"
-     style="opacity:1"> <g  class="stop" id="0">
+     style="opacity:1"> <!-- <g  class="stop" id="0">
       <path d="m 6.6816929,0.50008477 a 6.4356605,8.7588836 0 0 1 -12.871321,0 6.4356605,8.7588836 0 1 1 12.871321,0 z" />
       <rect height="7.0694928" width="17.539423" x="-8.6005955" y="-2.8380687" />
       <text y="2.6793449" x="-0.15570182" >
         <tspan>0</tspan>
       </text>
-    </g>
+    </g> -->
     <g transform="translate(144.26831,72.690813)" class="stop" id="1">
       <path d="m 6.6816929,0.50008477 a 6.4356605,8.7588836 0 0 1 -12.871321,0 6.4356605,8.7588836 0 1 1 12.871321,0 z" />
       <rect height="7.0694928" width="17.539423" x="-8.6005955" y="-2.8380687" />

@@ -1,49 +1,76 @@
+/**
+ * Scotland Yard API
+ *
+ **/
 
-# request body:
+// Error responses
 {
-	"type" : str,
+	"method"   : str,
+	"status" : "error",
+	"error"  : str
 }
 
-# response body:
-{
-	"type" : str,
-	"data" : obj
-}
+/***************************************************************/
+/****           Client -> Server communication.             ****/
+/***************************************************************/
 
-
-# Game state (requested from server)
-{
-	"detectives" : [{
-		"pos" : int,
-		"tickets" : {
-			"taxi"  : int,
-			"bus"   : int,
-			"metro" : int
-		}
-	}*],
-	"mrX" : {
-		"pos" : int,
-		"tickets" : {
-			"taxi"  : int,
-			"bus"   : int,
-			"metro" : int,
-			"black" : int,
-			"double" : int
-		}
-	},
-	"mrX_log" : [
-		ticket_types* 
-	],
-	"turn"  : int,
-	"round" : int
-}
-
-# Board (requested from server)
-{
-	"int" : {
-		"taxi"  : [int*],
-		"bus"   : [int*],
-		"metro" : [int*]
+//**************************************************************/
+// User management (creating new users, giving user roles enz)
+//
+// login: 
+//	   Request
+	{
+		"method"      : "login",
+		"api_token" : str
 	}
-}
+//     Response
+	{
+		"method"   : "login",
+		"status" : "ok"
+	}
+//
+// add: 
+//     Request
+	{
+		"method" : "add_user",
+		"name" : str,
+		"api_token" : str
+	}
+//     Response
+	{
+		"method"          : "add_user",
+		"status"        : "ok",
+		"new_api_token" : str
+	}
+//**************************************************************/
 
+//**************************************************************/
+// Game management (creating new games, setting properties)
+//
+// create:
+//     Request
+	{
+		"method"      : "create_game",
+		"api_token" : str
+	}
+//     Response
+	{
+		"method"          : "create_game",
+		"status"        : "ok",
+		"game_token"    : str
+	}
+
+// Game handling (
+
+// Managing
+// Creating a games		
+// List the games		
+
+
+
+// User
+
+
+// Player
+
+// Registering a player. return sessionid,
